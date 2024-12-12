@@ -5,8 +5,10 @@
 
 <template>
   <VRow class="match-height">
-    <!-- 👉 Target Cards -->
-    <SponsorshipTree />
+    <VCol cols="12">
+      <!-- 👉 Target Cards -->
+      <SponsorshipTree />
+    </VCol>
 
   </VRow>
 </template>
