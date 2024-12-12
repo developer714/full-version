@@ -11,7 +11,7 @@ const treeContainer = ref<HTMLElement | null>(null)
 interface MemberData {
   name: string
   member_id: string
-  recommender_name: string
+  concierge: string
   rank: string
   registration_date: string | null
   cumulative_pv: number
@@ -35,9 +35,9 @@ function buildTree(members: MemberData[], rootId: string = 'E770'): TreeNode | n
   if (!rootMember) return null
 
   function createNode(member: MemberData): TreeNode {
-    // Find children by matching recommender_name with current member's ID
+    // Find children by matching concierge with current member's ID
     const children = members
-      .filter(m => m.recommender_name.includes(member.member_id))
+      .filter(m => m.concierge.includes(member.member_id))
       .map(m => createNode(m))
 
     return {
