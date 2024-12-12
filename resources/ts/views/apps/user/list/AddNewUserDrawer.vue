@@ -19,15 +19,29 @@ const emit = defineEmits<Emit>()
 
 const isFormValid = ref(false)
 const refForm = ref<VForm>()
-const fullName = ref('')
-const userName = ref('')
+const member_name = ref('')
+const member_id = ref('')
 const email = ref('')
-const company = ref('')
-const country = ref()
-const contact = ref('')
-const role = ref()
-const plan = ref()
-const status = ref()
+const rank = ref('')
+const manager_name = ref('')
+const account_number = ref('')
+const account_holder = ref('')
+const avatar = ref('')
+const concierge = ref('')
+const recommender_name = ref('')
+const phone = ref('')
+const branch_id = ref('')
+const created_at = ref(new Date().toISOString().split('T')[0])
+const password = ref('12345678')
+const suggestion = ref('')
+const mountains_and_rivers = ref(-1)
+const cumulative_pv = ref('')
+const payment_amount = ref('')
+const circulation_rate = ref('')
+const suspension_of_benefits = ref('')
+const zip_code = ref('')
+const address = ref('')
+const recognition_account = ref('')
 
 // 👉 drawer close
 const closeNavigationDrawer = () => {
@@ -43,17 +57,30 @@ const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
     if (valid) {
       emit('userData', {
-        id: 0,
-        fullName: fullName.value,
-        company: company.value,
-        role: role.value,
-        country: country.value,
-        contact: contact.value,
+        recognition_account: recognition_account.value,
+        password: password.value,
+        member_id: member_id.value,
+        name: member_name.value,
         email: email.value,
-        currentPlan: plan.value,
-        status: status.value,
-        avatar: '',
-        billing: 'Auto Debit',
+        manager_name: manager_name.value,
+        account_number: account_number.value,
+        account_holder: account_holder.value,
+        avatar: avatar.value,
+        concierge: concierge.value,
+        recommender_name: recommender_name.value,
+        phone: phone.value,
+        branch_id: branch_id.value,
+        created_at: created_at.value,
+        suggestion: suggestion.value,
+        mountains_and_rivers: mountains_and_rivers.value,
+        cumulative_pv: cumulative_pv.value,
+        payment_amount: payment_amount.value,
+        circulation_rate: circulation_rate.value,
+        suspension_of_benefits: suspension_of_benefits.value,
+        zip_code: zip_code.value,
+        address: address.value,
+        rank: rank.value, // Added the missing 'rank' property
+        status: 1,
       })
       emit('update:isDrawerOpen', false)
       nextTick(() => {
@@ -100,20 +127,20 @@ const handleDrawerModelValueUpdate = (val: boolean) => {
               <!-- 👉 Full name -->
               <VCol cols="12">
                 <AppTextField
-                  v-model="fullName"
+                  v-model="member_name"
                   :rules="[requiredValidator]"
-                  label="Full Name"
+                  label="Member Name"
                   placeholder="John Doe"
                 />
               </VCol>
 
-              <!-- 👉 Username -->
+              <!-- 👉 Member ID -->
               <VCol cols="12">
                 <AppTextField
-                  v-model="userName"
+                  v-model="member_id"
                   :rules="[requiredValidator]"
-                  label="Username"
-                  placeholder="Johndoe"
+                  label="Member ID"
+                  placeholder="1234567890"
                 />
               </VCol>
 
@@ -127,70 +154,165 @@ const handleDrawerModelValueUpdate = (val: boolean) => {
                 />
               </VCol>
 
-              <!-- 👉 company -->
+              <!-- 👉 Manager Name -->
               <VCol cols="12">
                 <AppTextField
-                  v-model="company"
+                  v-model="manager_name"
                   :rules="[requiredValidator]"
-                  label="Company"
-                  placeholder="Themeselection"
+                  label="Manager Name"
+                  placeholder="John Doe"
                 />
               </VCol>
 
-              <!-- 👉 Country -->
               <VCol cols="12">
-                <AppSelect
-                  v-model="country"
-                  label="Select Country"
-                  placeholder="Select Country"
+                <AppTextField
+                  v-model="phone"
                   :rules="[requiredValidator]"
-                  :items="['USA', 'UK', 'India', 'Australia']"
+                  label="Phone"
+                  placeholder="+1-541-754-3010"
                 />
               </VCol>
 
               <!-- 👉 Contact -->
               <VCol cols="12">
                 <AppTextField
-                  v-model="contact"
-                  type="number"
+                  v-model="rank"
                   :rules="[requiredValidator]"
-                  label="Contact"
-                  placeholder="+1-541-754-3010"
+                  label="Rank"
+                  placeholder="Full Member"
                 />
               </VCol>
 
-              <!-- 👉 Role -->
-              <VCol cols="12">
-                <AppSelect
-                  v-model="role"
-                  label="Select Role"
-                  placeholder="Select Role"
+              <!-- 👉 Registration date -->
+              <!-- <VCol cols="12">
+                <AppTextField
+                  v-model="created_at"
                   :rules="[requiredValidator]"
-                  :items="['Admin', 'Author', 'Editor', 'Maintainer', 'Subscriber']"
+                  label="Registration date"
+                  placeholder="2024-01-01"
+                />
+              </VCol> -->
+
+              <!-- 👉 Concierge -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="concierge"
+                  :rules="[requiredValidator]"
+                  label="Concierge"
+                  placeholder="John Doe"
                 />
               </VCol>
 
-              <!-- 👉 Plan -->
+              <!-- 👉 Recommender -->
               <VCol cols="12">
-                <AppSelect
-                  v-model="plan"
-                  label="Select Plan"
-                  placeholder="Select Plan"
+                <AppTextField
+                  v-model="recommender_name"
                   :rules="[requiredValidator]"
-                  :items="['Basic', 'Company', 'Enterprise', 'Team']"
+                  label="Recommender"
+                  placeholder="John Doe"
                 />
               </VCol>
 
-              <!-- 👉 Status -->
+              <!-- 👉 Branch -->
               <VCol cols="12">
-                <AppSelect
-                  v-model="status"
-                  label="Select Status"
-                  placeholder="Select Status"
+                <AppTextField
+                  v-model="branch_id"
                   :rules="[requiredValidator]"
-                  :items="[{ title: 'Active', value: 'active' }, { title: 'Inactive', value: 'inactive' }, { title: 'Pending', value: 'pending' }]"
+                  label="Branch"
+                  placeholder="Cantorpusat"
                 />
               </VCol>
+
+              <!-- 👉 Suggestion -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="suggestion"
+                  :rules="[requiredValidator]"
+                  label="Suggestion"
+                  placeholder="0"
+                />
+              </VCol>
+
+              <!-- 👉 Mountains and rivers -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="mountains_and_rivers"
+                  :rules="[requiredValidator]"
+                  label="Mountains and rivers"
+                  placeholder=":"
+                />
+              </VCol>
+
+              <!-- 👉 Cumulative PV -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="cumulative_pv"
+                  :rules="[requiredValidator]"
+                  label="Cumulative PV"
+                  placeholder="1,000,000"
+                />
+              </VCol>
+
+
+              <!-- 👉 Payment amount -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="payment_amount"
+                  :rules="[requiredValidator]"
+                  label="Payment amount"
+                  placeholder="1"
+                />
+              </VCol>
+
+              <!-- 👉 Circulation Rate -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="circulation_rate"
+                  :rules="[requiredValidator]"
+                  label="Circulation Rate"
+                  placeholder="0%"
+                />
+              </VCol>
+
+              <!-- 👉 Recognition account -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="recognition_account"
+                  :rules="[requiredValidator]"
+                  label="Recognition account"
+                  placeholder="1"
+                />
+              </VCol>
+
+              <!-- 👉 Suspension of benefits -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="suspension_of_benefits"
+                  :rules="[requiredValidator]"
+                  label="Suspension of benefits"
+                  placeholder="N"
+                />
+              </VCol>
+
+              <!-- 👉 Address -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="address"
+                  :rules="[requiredValidator]"
+                  label="Address"
+                  placeholder="New York, NY 10001"
+                />
+              </VCol>
+
+              <!-- 👉 Zip code -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="zip_code"
+                  :rules="[requiredValidator]"
+                  label="Zip code"
+                  placeholder="55401"
+                />
+              </VCol> 
 
               <!-- 👉 Submit and Cancel -->
               <VCol cols="12">

@@ -1,207 +1,245 @@
 <script setup lang="ts">
-import AddNewUserDrawer from '@/views/apps/user/list/AddNewUserDrawer.vue';
-import type { UserProperties } from '@db/apps/users/types';
+import AddNewUserDrawer from "@/views/apps/user/list/AddNewUserDrawer.vue";
+import data from "@/views/demos/forms/tables/data-table/datatable";
+import type { UserProperties } from "@db/apps/users/types";
+import type { membersData } from "@db/pages/datatable/types";
+import { computed, onMounted, ref } from "vue";
 
-// 👉 Store
-const searchQuery = ref('')
-const selectedRole = ref()
-const selectedPlan = ref()
-const selectedStatus = ref()
+const searchQuery = ref("");
+const selectedRole = ref();
+const selectedPlan = ref();
+const selectedStatus = ref();
 
 // Data table options
-const itemsPerPage = ref(10)
-const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
-const selectedRows = ref([])
+const itemsPerPage = ref(10);
+const page = ref(1);
+const sortBy = ref();
+const orderBy = ref();
+const selectedRows = ref([]);
 
 // Update data table options
 const updateOptions = (options: any) => {
-  sortBy.value = options.sortBy[0]?.key
-  orderBy.value = options.sortBy[0]?.order
-}
+  sortBy.value = options.sortBy[0]?.key;
+  orderBy.value = options.sortBy[0]?.order;
+};
 
-// Headers
-const headers = [
-  { title: 'Member Name', key: 'memberName' },
-  { title: 'Cell Phone', key: 'cellPhone' },
-  { title: 'Rank', key: 'rank' },
-  { title: 'Registration Date', key: 'registrationDate' },
-  { title: 'Concierge', key: 'concierge' },
-  { title: 'Recommender', key: 'recommender' },
-  { title: 'Branch', key: 'branch' },
-  { title: 'Suggestion', key: 'suggestion' },
-  { title: 'Mountain and Rivers (Left:Right)', key: 'mountainAndRivers' },
-  { title: 'Cumulative PV', key: 'cumulativePV' },
-  { title: 'Payment Amount', key: 'paymentAmount' },
-  { title: 'Circulation Rate (%)', key: 'circulationRate' },
-  { title: 'Accredited Account', key: 'accreditedAccount' },
-  { title: 'Suspension Of Benefit', key: 'suspensionOfBenefit' },
-  { title: 'Zip Code', key: 'zipCode' },
-  { title: 'Address', key: 'address' },
-  { title: 'Settlement Details', key: 'settlementDetails' },
-  { title: 'Management Organization', key: 'managementOrganization' },
-  { title: 'Modify/Delete', key: 'actions', sortable: false },
-]
-// Start Generation Here
-const { data: membersData, execute: fetchMembers } = await useApi<any>('http://18.119.72.52/api/v1/auth/members')
-const members = computed(() => membersData.value)
-const totalMembers = computed(() => membersData.value.length)
-console.log("1111111111111111111", membersData)
-// 👉 Fetching users
-const { data: usersData, execute: fetchUsers } = await useApi<any>(createUrl('/apps/users', {
-  query: {
-    q: searchQuery,
-    status: selectedStatus,
-    plan: selectedPlan,
-    role: selectedRole,
-    itemsPerPage,
-    page,
-    sortBy,
-    orderBy,
-  },
-}))
-
-const users = computed((): UserProperties[] => usersData.value.users)
-const totalUsers = computed(() => usersData.value.totalUsers)
-
-// 👉 search filters
 const roles = [
-  { title: 'Admin', value: 'admin' },
-  { title: 'Author', value: 'author' },
-  { title: 'Editor', value: 'editor' },
-  { title: 'Maintainer', value: 'maintainer' },
-  { title: 'Subscriber', value: 'subscriber' },
-]
+  { title: "Admin", value: "admin" },
+  { title: "Author", value: "author" },
+  { title: "Editor", value: "editor" },
+  { title: "Maintainer", value: "maintainer" },
+  { title: "Subscriber", value: "subscriber" },
+];
 
 const plans = [
-  { title: 'Basic', value: 'basic' },
-  { title: 'Company', value: 'company' },
-  { title: 'Enterprise', value: 'enterprise' },
-  { title: 'Team', value: 'team' },
-]
+  { title: "Basic", value: "basic" },
+  { title: "Company", value: "company" },
+  { title: "Enterprise", value: "enterprise" },
+  { title: "Team", value: "team" },
+];
 
 const status = [
-  { title: 'Pending', value: 'pending' },
-  { title: 'Active', value: 'active' },
-  { title: 'Inactive', value: 'inactive' },
-]
+  { title: "Pending", value: "pending" },
+  { title: "Active", value: "active" },
+  { title: "Inactive", value: "inactive" },
+];
 
-const resolveUserRoleVariant = (role: string) => {
-  const roleLowerCase = role.toLowerCase()
+const editDialog = ref(false);
+const deleteDialog = ref(false);
 
-  if (roleLowerCase === 'subscriber')
-    return { color: 'success', icon: 'bx-user' }
-  if (roleLowerCase === 'author')
-    return { color: 'error', icon: 'bx-desktop' }
-  if (roleLowerCase === 'maintainer')
-    return { color: 'info', icon: 'bx-pie-chart-alt' }
-  if (roleLowerCase === 'editor')
-    return { color: 'warning', icon: 'bx-edit' }
-  if (roleLowerCase === 'admin')
-    return { color: 'primary', icon: 'bx-crown' }
+const { data: membersData, execute: fetchMembers } = await useApi<any>(
+  "http://18.119.72.52/api/v1/auth/members"
+);
+const members = computed(() => membersData.value);
+const totalMembers = computed(() => membersData.value.length);
+console.log(membersData.value);
 
-  return { color: 'primary', icon: 'bx-user' }
-}
 
-const resolveUserStatusVariant = (stat: string) => {
-  const statLowerCase = stat.toLowerCase()
-  if (statLowerCase === 'pending')
-    return 'warning'
-  if (statLowerCase === 'active')
-    return 'success'
-  if (statLowerCase === 'inactive')
-    return 'secondary'
+const searchUser = () => {
+  if (searchQuery.value.trim() === "") {
+    fetchMembers(); // Fetch original data if search query is empty
+  } else {
+    const query = searchQuery.value.toLowerCase();
+    const filteredMembers = [];
+    for (const member of members.value) {
+      for (const key in member) {
+        if (String(member[key]).toLowerCase().includes(query)) {
+          filteredMembers.push(member);
+          break;
+        }
+      }
+    }
+    membersData.value = filteredMembers;
+  }
+};
 
-  return 'primary'
-}
+watch(searchQuery, () => {
+  searchUser();
+});
 
-const isAddNewUserDrawerVisible = ref(false)
+
+const defaultItem = ref<membersData>({
+  id: 0,
+  member_id: 0,
+  manager_name: "",
+  account_number: "",
+  account_holder: "",
+  name: "",
+  email: "",
+  rank: "",
+  avatar: "",
+  concierge: "",
+  recommender_name: "",
+  phone: "",
+  branch_id: "",
+  created_at: "",
+  suggestion: "",
+  mountains_and_rivers: -1,
+  recognition_account: "",
+  cumulative_pv: "",
+  payment_amount: "",
+  circulation_rate: "",
+  suspension_of_benefits: "",
+  zip_code: "",
+  address: "",
+  status: -1,
+});
+
+const editedItem = ref<membersData>(defaultItem.value);
+const editedIndex = ref(-1);
+const userList = ref<membersData[]>([]);
+
+// status options
+const selectedOptions = [
+  { text: "Current", value: 1 },
+  { text: "Professional", value: 2 },
+  { text: "Rejected", value: 3 },
+  { text: "Resigned", value: 4 },
+  { text: "Applied", value: 5 },
+];
+
+// headers
+const headers = [
+  { title: "Member Name", key: "memberName" },
+  { title: "Member ID", key: "memberId" },
+  { title: "Cell Phone", key: "cellPhone" },
+  { title: "Rank", key: "rank" },
+  { title: "Registration Date", key: "registrationDate" },
+  { title: "Concierge", key: "concierge" },
+  { title: "Recommender", key: "recommender" },
+  { title: "Branch", key: "branch" },
+  { title: "Suggestion", key: "suggestion" },
+  { title: "Mountain and Rivers", key: "mountainAndRivers" },
+  { title: "Cumulative PV", key: "cumulativePV" },
+  { title: "Payment Amount", key: "paymentAmount" },
+  { title: "Circulation Rate (%)", key: "circulationRate" },
+  { title: "Recognition Account", key: "recognitionAccount" },
+  { title: "Suspension Of Benefit", key: "suspensionOfBenefit" },
+  { title: "Zip Code", key: "zipCode" },
+  { title: "Address", key: "address" },
+  { title: "Settlement Details", key: "settlementDetails" },
+  { title: "Management Organization Chart", key: "managementOrganization" },
+  { title: "Recommended Organization Chart", key: "recommendedOrganization" },
+  { title: "Modify/Delete", key: "actions", sortable: false },
+];
+
+const resolveStatusVariant = (status: number) => {
+  switch (status) {
+    case 1:
+      return { color: "primary", text: "Current" };
+    case 2:
+      return { color: "success", text: "Professional" };
+    case 3:
+      return { color: "error", text: "Rejected" };
+    case 4:
+      return { color: "warning", text: "Resigned" };
+    default:
+      return { color: "info", text: "Applied" };
+  }
+};
+
+// 👉 methods
+const editItem = (item: membersData) => {
+  editedIndex.value = userList.value.indexOf(item);
+  editedItem.value = { ...item };
+  editDialog.value = true;
+};
+
+const deleteItem = (item: membersData) => {
+  editedIndex.value = userList.value.indexOf(item);
+  editedItem.value = { ...item };
+  deleteDialog.value = true;
+};
+
+const close = () => {
+  editDialog.value = false;
+  editedIndex.value = -1;
+  editedItem.value = { ...defaultItem.value };
+};
+
+const closeDelete = () => {
+  deleteDialog.value = false;
+  editedIndex.value = -1;
+  editedItem.value = { ...defaultItem.value };
+};
+
+const save = () => {
+  if (editedIndex.value > -1) {
+    Object.assign(userList.value[editedIndex.value], editedItem.value);
+    console.log("aq123", userList.value[editedIndex.value]);
+  } else {
+    updateUser(editedItem.value.id, editedItem.value);
+  }
+  close();
+};
+
+const deleteItemConfirm = (id: number) => {
+  deleteUser(id);
+  closeDelete();
+};
+
+onMounted(() => {
+  userList.value = JSON.parse(JSON.stringify(data));
+});
+
+const isAddNewUserDrawerVisible = ref(false);
 
 // 👉 Add new user
 const addNewUser = async (userData: UserProperties) => {
-  await $api('/apps/users', {
-    method: 'POST',
+  await $api("http://18.119.72.52/api/v1/auth/members", {
+    method: "POST",
     body: userData,
-  })
+  });
 
   // Refetch User
-  fetchUsers()
-}
+  fetchMembers();
+};
 
 // 👉 Delete user
 const deleteUser = async (id: number) => {
-  await $api(`/apps/users/${id}`, {
-    method: 'DELETE',
-  })
-
-  // Delete from selectedRows
-  const index = selectedRows.value.findIndex(row => row === id)
-  if (index !== -1)
-    selectedRows.value.splice(index, 1)
+  await $api(`http://18.119.72.52/api/v1/auth/members/${id}`, {
+    method: "DELETE",
+  });
 
   // refetch User
-  // TODO: Make this async
-  fetchUsers()
-}
+  fetchMembers();
+};
 
+// 👉 Update user
+const updateUser = async (id: number, data: any) => {
+  console.log("aq123", data);
+  await $api(`http://18.119.72.52/api/v1/auth/members/${id}`, {
+    method: "PUT",
+    body: data,
+  });
+
+  // refetch User
+  fetchMembers();
+};
 </script>
 
 <template>
   <section>
-    <!-- 👉 Widgets -->
-    <!-- <div class="d-flex mb-6">
-      <VRow>
-        <template
-          v-for="(data, id) in widgetData"
-          :key="id"
-        >
-          <VCol
-            cols="12"
-            md="3"
-            sm="6"
-          >
-            <VCard>
-              <VCardText>
-                <div class="d-flex justify-space-between">
-                  <div class="d-flex flex-column gap-y-1">
-                    <div class="text-body-1 text-high-emphasis">
-                      {{ data.title }}
-                    </div>
-                    <div class="d-flex gap-x-2 align-center">
-                      <h4 class="text-h4">
-                        {{ data.value }}
-                      </h4>
-                      <div
-                        class="text-base"
-                        :class="data.change > 0 ? 'text-success' : 'text-error'"
-                      >
-                        ({{ prefixWithPlus(data.change) }}%)
-                      </div>
-                    </div>
-                    <div class="text-sm">
-                      {{ data.desc }}
-                    </div>
-                  </div>
-                  <VAvatar
-                    :color="data.iconColor"
-                    variant="tonal"
-                    rounded
-                    size="40"
-                  >
-                    <VIcon
-                      :icon="data.icon"
-                      size="24"
-                    />
-                  </VAvatar>
-                </div>
-              </VCardText>
-            </VCard>
-          </VCol>
-        </template>
-      </VRow>
-    </div> -->
-
     <VCard class="mb-6">
       <VCardItem class="pb-4">
         <VCardTitle>Filters</VCardTitle>
@@ -210,10 +248,7 @@ const deleteUser = async (id: number) => {
       <VCardText>
         <VRow>
           <!-- 👉 Select Role -->
-          <VCol
-            cols="12"
-            sm="4"
-          >
+          <VCol cols="12" sm="4">
             <AppSelect
               v-model="selectedRole"
               placeholder="Select Role"
@@ -223,10 +258,7 @@ const deleteUser = async (id: number) => {
             />
           </VCol>
           <!-- 👉 Select Plan -->
-          <VCol
-            cols="12"
-            sm="4"
-          >
+          <VCol cols="12" sm="4">
             <AppSelect
               v-model="selectedPlan"
               placeholder="Select Plan"
@@ -236,10 +268,7 @@ const deleteUser = async (id: number) => {
             />
           </VCol>
           <!-- 👉 Select Status -->
-          <VCol
-            cols="12"
-            sm="4"
-          >
+          <VCol cols="12" sm="4">
             <AppSelect
               v-model="selectedStatus"
               placeholder="Select Status"
@@ -273,18 +302,11 @@ const deleteUser = async (id: number) => {
         <div class="app-user-search-filter d-flex align-center flex-wrap gap-4">
           <!-- 👉 Search  -->
           <div style="inline-size: 15.625rem;">
-            <AppTextField
-              v-model="searchQuery"
-              placeholder="Search User"
-            />
+            <AppTextField v-model="searchQuery" placeholder="Search User" />
           </div>
 
           <!-- 👉 Export button -->
-          <VBtn
-            variant="tonal"
-            color="secondary"
-            prepend-icon="bx-export"
-          >
+          <VBtn variant="tonal" color="secondary" prepend-icon="bx-export">
             Export
           </VBtn>
 
@@ -298,133 +320,324 @@ const deleteUser = async (id: number) => {
         </div>
       </VCardText>
       <VDivider />
-
-      <!-- SECTION datatable -->
-      <VDataTableServer
-        v-model:items-per-page="itemsPerPage"
-        v-model:model-value="selectedRows"
-        v-model:page="page"
-        :items="membersData"
-        item-value="id"
-        :items-length="totalMembers"
-        :headers="headers"
-        class="text-no-wrap"
-        show-select
-        @update:options="updateOptions"
-      >
-        <!-- User -->
-        <template #item.name="{ item }">
-          <div class="d-flex align-center gap-x-4">
+      <!-- 👉 Datatable  -->
+      <VDataTable :headers="headers" :items="membersData" :items-per-page="5">
+        <!-- full name -->
+        <template #item.memberName="{ item }">
+          <div class="d-flex align-center">
+            <!-- avatar -->
             <VAvatar
-              size="34"
+              size="32"
+              :color="item.avatar ? '' : 'primary'"
+              :class="item.avatar ? '' : 'v-avatar-light-bg primary--text'"
               :variant="!item.avatar ? 'tonal' : undefined"
-              :color="!item.avatar ? resolveUserRoleVariant(item.role).color : undefined"
             >
-              <VImg
-                v-if="item.avatar"
-                :src="item.avatar"
-              />
-              <span v-else>{{ avatarText(item.Name) }}</span>
+              <VImg v-if="item.avatar" :src="item.avatar" />
+              <span v-else>{{ avatarText(item.fullName) }}</span>
             </VAvatar>
-            <div class="d-flex flex-column">
-              <h6 class="text-base">
-                <RouterLink
+
+            <div class="d-flex flex-column ms-3">
+              <RouterLink
                   :to="{ name: 'apps-user-view-id', params: { id: item.id } }"
                   class="font-weight-medium text-link"
                 >
-                  {{ item.Name }}
-                </RouterLink>
-              </h6>
-              <div class="text-sm">
-                {{ item.email }}
-              </div>
+              <span
+                class="d-block font-weight-medium text-high-emphasis text-truncate"
+                >{{ item.name }}</span
+              >
+            </RouterLink>
+              <small>{{ item.rank }}</small>
             </div>
           </div>
         </template>
 
-        <!-- 👉 Role -->
-        <template #item.role="{ item }">
-          <div class="d-flex align-center gap-x-2">
-            <VIcon
-              :size="20"
-              :icon="resolveUserRoleVariant(item.role).icon"
-              :color="resolveUserRoleVariant(item.role).color"
-            />
+        <!-- status -->
+        <template #item.concierge="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.concierge }}
+          </div>
+        </template>
 
-            <div class="text-capitalize text-high-emphasis text-body-1">
-              {{ item.role }}
-            </div>
+        <template #item.memberId="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.member_id }}
+          </div>
+        </template>
+
+        <template #item.recommender="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.recommender_name }}
+          </div>
+        </template>
+
+        <template #item.cellPhone="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.phone }}
+          </div>
+        </template>
+
+        <template #item.branch="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.branch_id }}
           </div>
         </template>
 
         <!-- Plan -->
         <template #item.plan="{ item }">
           <div class="text-body-1 text-high-emphasis text-capitalize">
-            {{ item.currentPlan }}
+            {{ item.branch_id }}
           </div>
         </template>
 
-        <!-- Status -->
-        <template #item.status="{ item }">
-          <VChip
-            :color="resolveUserStatusVariant(item.status)"
-            size="small"
-            label
-            class="text-capitalize"
-          >
-            {{ item.status }}
-          </VChip>
+        <template #item.recognitionAccount="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.recognition_account }}
+          </div>
+        </template>
+
+        <template #item.registrationDate="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ new Date(item.created_at).toLocaleString() }}
+          </div>
+        </template>
+
+        <template #item.suggestion="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.suggestion }}
+          </div>
+        </template>
+
+        <template #item.mountainAndRivers="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.mountains_and_rivers }}
+          </div>
+        </template>
+
+        <template #item.cumulativePV="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.cumulative_pv }}
+          </div>
+        </template>
+
+        <template #item.paymentAmount="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.payment_amount }}
+          </div>
+        </template>
+
+        <template #item.circulationRate="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.circulation_rate }}
+          </div>
+        </template>
+
+        <template #item.suspensionOfBenefit="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.suspension_of_benefits }}
+          </div>
+        </template>
+
+        <template #item.zipCode="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.zip_code }}
+          </div>
+        </template>
+
+        <template #item.settlementDetails="{ item }">
+          <div class="d-flex gap-1">
+            <IconBtn>
+              <VIcon icon="bx-show" />
+            </IconBtn>
+          </div>
+        </template>
+
+        <template #item.recommendedOrganization="{ item }">
+          <div class="d-flex gap-1">
+            <IconBtn>
+              <VIcon icon="bx-show" />
+            </IconBtn>
+          </div>
+        </template>
+
+        <template #item.managementOrganization="{ item }">
+          <div class="d-flex gap-1">
+            <IconBtn>
+              <VIcon icon="bx-show" />
+            </IconBtn>
+          </div>
+        </template>
+
+        <template #item.address="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.address }}
+          </div>
         </template>
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="deleteUser(item.id)">
-            <VIcon icon="bx-trash" />
-          </IconBtn>
-
-          <IconBtn>
-            <VIcon icon="bx-show" />
-          </IconBtn>
-
-          <VBtn
-            icon
-            variant="text"
-            color="medium-emphasis"
-          >
-            <VIcon icon="bx-dots-vertical-rounded" />
-            <VMenu activator="parent">
-              <VList>
-                <VListItem :to="{ name: 'apps-user-view-id', params: { id: item.id } }">
-                  <template #prepend>
-                    <VIcon icon="bx-show" />
-                  </template>
-
-                  <VListItemTitle>View</VListItemTitle>
-                </VListItem>
-
-                <VListItem link>
-                  <template #prepend>
-                    <VIcon icon="bx-pencil" />
-                  </template>
-                  <VListItemTitle>Edit</VListItemTitle>
-                </VListItem>
-              </VList>
-            </VMenu>
-          </VBtn>
+          <div class="d-flex gap-1">
+            <IconBtn @click="editItem(item)">
+              <VIcon icon="bx-edit" />
+            </IconBtn>
+            <IconBtn @click="deleteItem(item)">
+              <VIcon icon="bx-trash" />
+            </IconBtn>
+          </div>
         </template>
+      </VDataTable>
 
-        <!-- pagination -->
-        <template #bottom>
-          <TablePagination
-            v-model:page="page"
-            :items-per-page="itemsPerPage"
-            :total-items="totalMembers"
-          />
-        </template>
-      </VDataTableServer>
-      <!-- SECTION -->
+      <!-- 👉 Edit Dialog  -->
+      <VDialog v-model="editDialog" max-width="600px">
+        <VCard title="Edit Item">
+          <VCardText>
+            <div class="text-body-1 mb-6">
+              Name: <span class="text-h6">{{ editedItem?.name }}</span>
+            </div>
+            <VRow>
+              <!-- member id -->
+              <VCol cols="12" sm="6">
+                <AppTextField
+                  v-model="editedItem.member_id"
+                  label="Member ID"
+                />
+              </VCol>
+              <!-- fullName -->
+              <VCol cols="12" sm="6">
+                <AppTextField
+                  v-model="editedItem.name"
+                  label="Member Name"
+                />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField v-model="editedItem.phone" label="Cell Phone" />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField v-model="editedItem.rank" label="Rank" />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField
+                  v-model="editedItem.concierge"
+                  label="Concierge"
+                />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField
+                  v-model="editedItem.created_at"
+                  label="Registration Date"
+                />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField
+                  v-model="editedItem.recommender_name"
+                  label="Recommender"
+                />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField 
+                v-model="editedItem.branch_id" 
+                label="Branch" 
+                />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField
+                  v-model="editedItem.suggestion"
+                  label="Suggestion"
+                />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField
+                  v-model="editedItem.mountains_and_rivers"
+                  label="Mountain and Rivers"
+                />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField
+                  v-model="editedItem.cumulative_pv"
+                  label="Cumulative PV"
+                />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField
+                  v-model="editedItem.payment_amount"
+                  label="Payment Amount"
+                />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField
+                  v-model="editedItem.circulation_rate"
+                  label="Circulation Rate"
+                />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField
+                  v-model="editedItem.recognition_account"
+                  label="Recognition Account"
+                />
+              </VCol>
+
+
+              <VCol cols="12" sm="6">
+                <AppTextField
+                  v-model="editedItem.suspension_of_benefits"
+                  label="Suspension Of Benefit"
+                />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField v-model="editedItem.zip_code" label="Zip Code" />
+              </VCol>
+
+              <VCol cols="12" sm="6">
+                <AppTextField v-model="editedItem.address" label="Address" />
+              </VCol>
+            </VRow>
+          </VCardText>
+
+          <VCardText>
+            <div class="self-align-end d-flex gap-4 justify-end">
+              <VBtn color="error" variant="outlined" @click="close">
+                Cancel
+              </VBtn>
+              <VBtn color="success" variant="elevated" @click="save">
+                Save
+              </VBtn>
+            </div>
+          </VCardText>
+        </VCard>
+      </VDialog>
+
+      <!-- 👉 Delete Dialog  -->
+      <VDialog v-model="deleteDialog" max-width="500px">
+        <VCard title="Are you sure you want to delete this item?">
+          <VCardText>
+            <div class="d-flex justify-center gap-4">
+              <VBtn color="error" variant="outlined" @click="closeDelete">
+                Cancel
+              </VBtn>
+              <VBtn
+                color="success"
+                variant="elevated"
+                @click="deleteItemConfirm(editedItem.id)"
+              >
+                OK
+              </VBtn>
+            </div>
+          </VCardText>
+        </VCard>
+      </VDialog>
     </VCard>
-    <!-- 👉 Add New User -->
     <AddNewUserDrawer
       v-model:isDrawerOpen="isAddNewUserDrawerVisible"
       @user-data="addNewUser"
