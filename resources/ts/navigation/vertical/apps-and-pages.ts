@@ -1,19 +1,19 @@
 export default [
   { heading: 'Apps & Pages' },
-  {
-    title: 'Ecommerce',
-    icon: { icon: 'bx-cart-alt' },
-    children: [
-      {
-        title: 'Product',
-        children: [
-          { title: 'Order', to: 'apps-ecommerce-product-list' },
-          { title: 'Add', to: 'apps-ecommerce-product-add' },
-          { title: 'Category', to: 'apps-ecommerce-product-category-list' },
-        ],
-      },
-    ],
-  },
+  // {
+  //   title: 'Ecommerce',
+  //   icon: { icon: 'bx-cart-alt' },
+  //   children: [
+  //     {
+  //       title: 'Product',
+  //       children: [
+  //         { title: 'Order', to: 'apps-ecommerce-product-list' },
+  //         { title: 'Add', to: 'apps-ecommerce-product-add' },
+  //         { title: 'Category', to: 'apps-ecommerce-product-category-list' },
+  //       ],
+  //     },
+  //   ],
+  // },
   
   {
     title: 'Member Management',
