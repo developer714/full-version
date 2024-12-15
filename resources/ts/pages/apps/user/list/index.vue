@@ -3,83 +3,67 @@ import AddNewUserDrawer from "@/views/apps/user/list/AddNewUserDrawer.vue";
 import data from "@/views/demos/forms/tables/data-table/datatable";
 import type { UserProperties } from "@db/apps/users/types";
 import type { membersData } from "@db/pages/datatable/types";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+import { VCol, VRow } from "vuetify/components";
 
+// Search state
 const searchQuery = ref("");
-const selectedRole = ref();
-const selectedPlan = ref();
-const selectedStatus = ref();
+const searchCriteria = ref("");
+const searchValue = ref("");
+const startDate = ref("");
+const endDate = ref("");
+const selectedRank = ref("");
+const selectedSuspension = ref("");
+const selectedCirculationRate = ref("");
 
-// Data table options
-const itemsPerPage = ref(10);
-const page = ref(1);
-const sortBy = ref();
-const orderBy = ref();
-const selectedRows = ref([]);
-
-// Update data table options
-const updateOptions = (options: any) => {
-  sortBy.value = options.sortBy[0]?.key;
-  orderBy.value = options.sortBy[0]?.order;
-};
-
-const roles = [
-  { title: "Admin", value: "admin" },
-  { title: "Author", value: "author" },
-  { title: "Editor", value: "editor" },
-  { title: "Maintainer", value: "maintainer" },
-  { title: "Subscriber", value: "subscriber" },
-];
-
-const plans = [
-  { title: "Basic", value: "basic" },
-  { title: "Company", value: "company" },
-  { title: "Enterprise", value: "enterprise" },
-  { title: "Team", value: "team" },
-];
-
-const status = [
-  { title: "Pending", value: "pending" },
-  { title: "Active", value: "active" },
-  { title: "Inactive", value: "inactive" },
-];
-
+// Dialog state
 const editDialog = ref(false);
 const deleteDialog = ref(false);
+const isAddNewUserDrawerVisible = ref(false);
 
+// Data state
+const editedIndex = ref(-1);
+const userList = ref<membersData[]>([]);
+
+// API data
 const { data: membersData, execute: fetchMembers } = await useApi<any>(
   "http://18.119.72.52/api/v1/auth/members"
 );
 const members = computed(() => membersData.value);
-const totalMembers = computed(() => membersData.value.length);
-console.log(membersData.value);
 
+// Constants
+const periodOptions = ["Registration Date"];
+const periodQuickSelectOptions = [
+  { label: "A week", value: "week" },
+  { label: "15 Days", value: "15days" }, 
+  { label: "1 Month", value: "1month" },
+];
 
-const searchUser = () => {
-  if (searchQuery.value.trim() === "") {
-    fetchMembers(); // Fetch original data if search query is empty
-  } else {
-    const query = searchQuery.value.toLowerCase();
-    const filteredMembers = [];
-    for (const member of members.value) {
-      for (const key in member) {
-        if (String(member[key]).toLowerCase().includes(query)) {
-          filteredMembers.push(member);
-          break;
-        }
-      }
-    }
-    membersData.value = filteredMembers;
-  }
+const searchOptions = {
+  memberId: [
+    { name: "Member ID", value: "member_id" },
+    { name: "Member Name", value: "name" },
+    { name: "Branch", value: "branch_id" },
+    { name: "Recommender", value: "recommender_name" },
+    { name: "Concierge", value: "concierge" }
+  ],
+  rank: [
+    "Associate Member",
+    "Full Member", 
+    "Advertiser",
+    "Exaggeration",
+    "Team Leader",
+    "Senior Team Leader",
+    "Headquarters Manager",
+  ],
+  suspension: ["Normal", "Stop"],
+  circulationRate: ["400%", "500%"],
+  selectedPeriodType: ["Registration Date"]
 };
-
-watch(searchQuery, () => {
-  searchUser();
-});
-
 
 const defaultItem = ref<membersData>({
   id: 0,
+  no: 0,
   member_id: 0,
   manager_name: "",
   account_number: "",
@@ -106,59 +90,92 @@ const defaultItem = ref<membersData>({
 });
 
 const editedItem = ref<membersData>(defaultItem.value);
-const editedIndex = ref(-1);
-const userList = ref<membersData[]>([]);
 
-// status options
-const selectedOptions = [
-  { text: "Current", value: 1 },
-  { text: "Professional", value: 2 },
-  { text: "Rejected", value: 3 },
-  { text: "Resigned", value: 4 },
-  { text: "Applied", value: 5 },
-];
-
-// headers
+// Table headers
 const headers = [
-  { title: "Member Name", key: "memberName" },
-  { title: "Member ID", key: "memberId" },
-  { title: "Cell Phone", key: "cellPhone" },
-  { title: "Rank", key: "rank" },
-  { title: "Registration Date", key: "registrationDate" },
-  { title: "Concierge", key: "concierge" },
-  { title: "Recommender", key: "recommender" },
-  { title: "Branch", key: "branch" },
-  { title: "Suggestion", key: "suggestion" },
-  { title: "Mountain and Rivers", key: "mountainAndRivers" },
-  { title: "Cumulative PV", key: "cumulativePV" },
-  { title: "Payment Amount", key: "paymentAmount" },
-  { title: "Circulation Rate (%)", key: "circulationRate" },
-  { title: "Recognition Account", key: "recognitionAccount" },
-  { title: "Suspension Of Benefit", key: "suspensionOfBenefit" },
-  { title: "Zip Code", key: "zipCode" },
-  { title: "Address", key: "address" },
+  { title: "No", key: "count", sortable: true },
+  { title: "Member Name", key: "memberName", sortable: true },
+  { title: "Member ID", key: "memberId", sortable: true },
+  { title: "Cell Phone", key: "cellPhone", sortable: true },
+  { title: "Rank", key: "rank", sortable: true },
+  { title: "Registration Date", key: "registrationDate", sortable: true },
+  { title: "Concierge", key: "concierge", sortable: true },
+  { title: "Recommender", key: "recommender", sortable: true },
+  { title: "Branch", key: "branch", sortable: true },
+  { title: "Suggestion", key: "suggestion", sortable: true },
+  { title: "Mountain and Rivers", key: "mountainAndRivers", sortable: true },
+  { title: "Cumulative PV", key: "cumulativePV", sortable: true },
+  { title: "Payment Amount", key: "paymentAmount", sortable: true },
+  { title: "Circulation Rate (%)", key: "circulationRate", sortable: true },
+  { title: "Recognition Account", key: "recognitionAccount", sortable: true },
+  { title: "Suspension Of Benefit", key: "suspensionOfBenefit", sortable: true },
+  { title: "Zip Code", key: "zipCode", sortable: true },
+  { title: "Address", key: "address", sortable: true },
   { title: "Settlement Details", key: "settlementDetails" },
   { title: "Management Organization Chart", key: "managementOrganization" },
   { title: "Recommended Organization Chart", key: "recommendedOrganization" },
   { title: "Modify/Delete", key: "actions", sortable: false },
 ];
 
-const resolveStatusVariant = (status: number) => {
-  switch (status) {
-    case 1:
-      return { color: "primary", text: "Current" };
-    case 2:
-      return { color: "success", text: "Professional" };
-    case 3:
-      return { color: "error", text: "Rejected" };
-    case 4:
-      return { color: "warning", text: "Resigned" };
-    default:
-      return { color: "info", text: "Applied" };
+// Methods
+const searchUser = () => {
+  let filteredMembers = members.value;
+
+  // Search by Period
+  if (startDate.value && endDate.value) {
+    const start = new Date(startDate.value);
+    const end = new Date(endDate.value);
+    filteredMembers = filteredMembers.filter((member: membersData) => {
+      const registrationDate = new Date(member.created_at);
+      return registrationDate >= start && registrationDate <= end;
+    });
   }
+
+  // Search by Detail
+  if (searchCriteria.value && searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase();
+    const criteria = searchOptions.memberId.find(option => option.name === searchCriteria.value)?.value as keyof membersData;
+    filteredMembers = filteredMembers.filter((member: membersData) => {
+      const memberValue = String(member[criteria]).toLowerCase();
+      return memberValue.includes(query);
+    });
+  }
+
+  // Other Searches
+  if (selectedRank.value || selectedSuspension.value || selectedCirculationRate.value) {
+    filteredMembers = filteredMembers.filter((member: membersData) => {
+      const matchesRank = !selectedRank.value || member.rank === selectedRank.value;
+      const matchesSuspension = !selectedSuspension.value || member.suspension_of_benefits === selectedSuspension.value;
+      const matchesCirculationRate = !selectedCirculationRate.value || member.circulation_rate === selectedCirculationRate.value;
+      return matchesRank && matchesSuspension && matchesCirculationRate;
+    });
+  }
+
+  membersData.value = filteredMembers;
 };
 
-// 👉 methods
+const setQuickSelectPeriod = (period: string) => {
+  const today = new Date();
+  let startDateValue = new Date();
+
+  switch (period) {
+    case "week":
+      startDateValue.setDate(today.getDate() - 7);
+      break;
+    case "15days":
+      startDateValue.setDate(today.getDate() - 15);
+      break;
+    case "1month":
+      startDateValue.setMonth(today.getMonth() - 1);
+      break;
+    default:
+      return;
+  }
+
+  startDate.value = startDateValue.toISOString().split("T")[0];
+  endDate.value = today.toISOString().split("T")[0];
+};
+
 const editItem = (item: membersData) => {
   editedIndex.value = userList.value.indexOf(item);
   editedItem.value = { ...item };
@@ -173,12 +190,15 @@ const deleteItem = (item: membersData) => {
 
 const close = () => {
   editDialog.value = false;
-  editedIndex.value = -1;
-  editedItem.value = { ...defaultItem.value };
+  resetEditedItem();
 };
 
 const closeDelete = () => {
   deleteDialog.value = false;
+  resetEditedItem();
+};
+
+const resetEditedItem = () => {
   editedIndex.value = -1;
   editedItem.value = { ...defaultItem.value };
 };
@@ -186,7 +206,6 @@ const closeDelete = () => {
 const save = () => {
   if (editedIndex.value > -1) {
     Object.assign(userList.value[editedIndex.value], editedItem.value);
-    console.log("aq123", userList.value[editedIndex.value]);
   } else {
     updateUser(editedItem.value.id, editedItem.value);
   }
@@ -198,44 +217,40 @@ const deleteItemConfirm = (id: number) => {
   closeDelete();
 };
 
-onMounted(() => {
-  userList.value = JSON.parse(JSON.stringify(data));
-});
-
-const isAddNewUserDrawerVisible = ref(false);
-
-// 👉 Add new user
+// API Methods
 const addNewUser = async (userData: UserProperties) => {
   await $api("http://18.119.72.52/api/v1/auth/members", {
     method: "POST",
     body: userData,
   });
-
-  // Refetch User
   fetchMembers();
 };
 
-// 👉 Delete user
 const deleteUser = async (id: number) => {
   await $api(`http://18.119.72.52/api/v1/auth/members/${id}`, {
     method: "DELETE",
   });
-
-  // refetch User
   fetchMembers();
 };
 
-// 👉 Update user
 const updateUser = async (id: number, data: any) => {
-  console.log("aq123", data);
   await $api(`http://18.119.72.52/api/v1/auth/members/${id}`, {
     method: "PUT",
     body: data,
   });
-
-  // refetch User
   fetchMembers();
 };
+
+// Watchers
+watch([searchCriteria, searchValue], searchUser);
+
+// Lifecycle
+onMounted(() => {
+  userList.value = JSON.parse(JSON.stringify(data));
+  userList.value.forEach((item, index) => {
+    item.no = index + 1;
+  });
+});
 </script>
 
 <template>
@@ -244,59 +259,125 @@ const updateUser = async (id: number, data: any) => {
       <VCardItem class="pb-4">
         <VCardTitle>Filters</VCardTitle>
       </VCardItem>
-
       <VCardText>
-        <VRow>
-          <!-- 👉 Select Role -->
-          <VCol cols="12" sm="4">
+        <VRow cols="12" sm="12" class="mb-4 align-center">
+          <VCol cols="12" sm="2" class="ml-2">
+            <label for="search-period" class="font-weight-bold mb-2">Search by period</label>
+          </VCol>
+          <VCol cols="12" sm="2">
             <AppSelect
-              v-model="selectedRole"
-              placeholder="Select Role"
-              :items="roles"
+              v-model="searchOptions.selectedPeriodType"
+              placeholder="Select period type"
+              :items="periodOptions"
               clearable
               clear-icon="bx-x"
             />
           </VCol>
-          <!-- 👉 Select Plan -->
-          <VCol cols="12" sm="4">
-            <AppSelect
-              v-model="selectedPlan"
-              placeholder="Select Plan"
-              :items="plans"
-              clearable
-              clear-icon="bx-x"
+          <VCol cols="12" sm="2">
+            <VTextField
+              v-model="startDate"
+              type="date"
+              outlined
+              dense
             />
           </VCol>
-          <!-- 👉 Select Status -->
-          <VCol cols="12" sm="4">
-            <AppSelect
-              v-model="selectedStatus"
-              placeholder="Select Status"
-              :items="status"
-              clearable
-              clear-icon="bx-x"
+          <VCol cols="12" sm="2">
+            <VTextField
+              v-model="endDate"
+              type="date"
+              outlined
+              dense
             />
+          </VCol>
+          <VCol cols="12" sm="3">
+            <VBtn
+              v-for="option in periodQuickSelectOptions"
+              :key="option.value"
+              @click="setQuickSelectPeriod(option.value)"
+              text
+              class="mx-1"
+            >
+              {{ option.label }}
+            </VBtn>
           </VCol>
         </VRow>
-      </VCardText>
 
-      <VDivider />
+        <VCol>
+          <VRow cols="12" sm="12" class="mb-4 align-center">
+            <VCol cols="12" sm="2">
+              <label for="search-detail" class="font-weight-bold mb-2">Search by Detail</label>
+            </VCol>
+            <VCol cols="12" sm="3">
+              <AppSelect
+                v-model="searchCriteria"
+                placeholder="Search by Detail"
+                :items="searchOptions.memberId.map(option => option.name)"
+                clearable
+                clear-icon="bx-x"
+              />
+            </VCol>
+            <VCol cols="12" sm="7">
+              <AppTextField
+                v-model="searchQuery"
+                placeholder="Enter search term"
+                outlined
+                dense
+              />
+            </VCol>
+          </VRow>
+          <VRow cols="12" sm="12" class="mb-4 mt-2 align-center">
+            <VCol cols="12" sm="2">
+              <label for="other-service" class="font-weight-bold mb-2">Other Searches</label>
+            </VCol>
+            <VCol cols="12" sm="3">
+              <AppSelect
+                v-model="selectedRank"
+                placeholder="Member Rank"
+                :items="searchOptions.rank"
+                clearable
+                clear-icon="bx-x"
+              />
+            </VCol>
+            <VCol cols="12" sm="3">
+              <AppSelect
+                v-model="selectedSuspension"
+                placeholder="Suspension Level"
+                :items="searchOptions.suspension"
+                clearable
+                clear-icon="bx-x"
+              />
+            </VCol>
+            <VCol cols="12" sm="3">
+              <AppSelect
+                v-model="selectedCirculationRate"
+                placeholder="Circulation Status"
+                :items="searchOptions.circulationRate"
+                clearable
+                clear-icon="bx-x"
+              />
+            </VCol>
+          </VRow>
+        </VCol>
+        <VDivider />        
+      </VCardText>
 
       <VCardText class="d-flex flex-wrap gap-4">
         <VSpacer />
 
         <div class="app-user-search-filter d-flex align-center flex-wrap gap-4">
-          <!-- 👉 Search  -->
-          <div style="inline-size: 15.625rem;">
-            <AppTextField v-model="searchQuery" placeholder="Search User" />
-          </div>
+          <VBtn
+            prepend-icon="bx-search"
+            @click="searchUser" 
+            class="mt-2 align-center"
+            position="right"
+          >
+            Search
+          </VBtn>
 
-          <!-- 👉 Export button -->
           <VBtn variant="tonal" color="secondary" prepend-icon="bx-export">
             Export
           </VBtn>
 
-          <!-- 👉 Add user button -->
           <VBtn
             prepend-icon="bx-plus"
             @click="isAddNewUserDrawerVisible = true"
@@ -306,12 +387,23 @@ const updateUser = async (id: number, data: any) => {
         </div>
       </VCardText>
       <VDivider />
+
       <!-- 👉 Datatable  -->
-      <VDataTable :headers="headers" :items="membersData" :items-per-page="5">
-        <!-- full name -->
+      <VDataTable
+        :headers="headers"
+        :items="membersData"
+        :items-per-page="5"
+        show-select
+        item-value="name"
+      >
+        <template #item.no="{ item }">
+          <div class="text-body-1 text-high-emphasis text-capitalize">
+            {{ item.no }}
+          </div>
+        </template>
+
         <template #item.memberName="{ item }">
           <div class="d-flex align-center">
-            <!-- avatar -->
             <VAvatar
               size="32"
               :color="item.avatar ? '' : 'primary'"
@@ -324,20 +416,18 @@ const updateUser = async (id: number, data: any) => {
 
             <div class="d-flex flex-column ms-3">
               <RouterLink
-                  :to="{ name: 'apps-user-view-id', params: { id: item.id } }"
-                  class="font-weight-medium text-link"
-                >
-              <span
-                class="d-block font-weight-medium text-high-emphasis text-truncate"
-                >{{ item.name }}</span
+                :to="{ name: 'apps-user-view-id', params: { id: item.id } }"
+                class="font-weight-medium text-link"
               >
-            </RouterLink>
+                <span class="d-block font-weight-medium text-high-emphasis text-truncate">
+                  {{ item.name }}
+                </span>
+              </RouterLink>
               <small>{{ item.rank }}</small>
             </div>
           </div>
         </template>
 
-        <!-- status -->
         <template #item.concierge="{ item }">
           <div class="text-body-1 text-high-emphasis text-capitalize">
             {{ item.concierge }}
@@ -368,7 +458,6 @@ const updateUser = async (id: number, data: any) => {
           </div>
         </template>
 
-        <!-- Plan -->
         <template #item.plan="{ item }">
           <div class="text-body-1 text-high-emphasis text-capitalize">
             {{ item.branch_id }}
@@ -459,7 +548,6 @@ const updateUser = async (id: number, data: any) => {
           </div>
         </template>
 
-        <!-- Actions -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-1">
             <IconBtn @click="editItem(item)">
@@ -480,19 +568,14 @@ const updateUser = async (id: number, data: any) => {
               Name: <span class="text-h6">{{ editedItem?.name }}</span>
             </div>
             <VRow>
-              <!-- member id -->
               <VCol cols="12" sm="6">
                 <AppTextField
                   v-model="editedItem.member_id"
                   label="Member ID"
                 />
               </VCol>
-              <!-- fullName -->
               <VCol cols="12" sm="6">
-                <AppTextField
-                  v-model="editedItem.name"
-                  label="Member Name"
-                />
+                <AppTextField v-model="editedItem.name" label="Member Name" />
               </VCol>
 
               <VCol cols="12" sm="6">
@@ -525,10 +608,7 @@ const updateUser = async (id: number, data: any) => {
               </VCol>
 
               <VCol cols="12" sm="6">
-                <AppTextField 
-                v-model="editedItem.branch_id" 
-                label="Branch" 
-                />
+                <AppTextField v-model="editedItem.branch_id" label="Branch" />
               </VCol>
 
               <VCol cols="12" sm="6">
@@ -572,7 +652,6 @@ const updateUser = async (id: number, data: any) => {
                   label="Recognition Account"
                 />
               </VCol>
-
 
               <VCol cols="12" sm="6">
                 <AppTextField

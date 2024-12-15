@@ -198,6 +198,11 @@ export const db: DB = {
           title: 'User List',
         },
         {
+          url: { name: 'apps-branch-list' },
+          icon: 'bx-group',
+          title: 'Branch List',
+        },
+        {
           url: { name: 'apps-user-view-id', params: { id: 21 } },
           icon: 'bx-show',
           title: 'User View',

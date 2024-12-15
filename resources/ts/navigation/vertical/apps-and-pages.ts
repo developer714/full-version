@@ -1,27 +1,40 @@
 export default [
-  { heading: 'Apps & Pages' },
-  // {
-  //   title: 'Ecommerce',
-  //   icon: { icon: 'bx-cart-alt' },
-  //   children: [
-  //     {
-  //       title: 'Product',
-  //       children: [
-  //         { title: 'Order', to: 'apps-ecommerce-product-list' },
-  //         { title: 'Add', to: 'apps-ecommerce-product-add' },
-  //         { title: 'Category', to: 'apps-ecommerce-product-category-list' },
-  //       ],
-  //     },
-  //   ],
-  // },
-  
-  {
+    {
     title: 'Member Management',
     icon: { icon: 'bx-user' },
     children: [
       { title: 'Customer List', to: 'apps-user-list' },
       { title: 'Sponsorship Diagram', to: 'pages-cards-card-statistics' },
       { title: 'Recommendation Diagram', to: 'pages-cards-card-basic' },
+    ],
+  },
+  
+  {
+    title: 'Ecommerce',
+    icon: { icon: 'bx-cart-alt' },
+        children: [
+          { title: 'Order', to: 'apps-ecommerce-product-list' },
+          { title: 'Add', to: 'apps-ecommerce-product-add' },
+          { title: 'Category', to: 'apps-ecommerce-product-category-list' },
+        ],
+  },
+  
+  {
+    title: 'Ecommerce',
+    icon: { icon: 'bx-cart-alt' },
+        children: [
+          { title: 'Order', to: 'apps-ecommerce-product-list' },
+          { title: 'Add', to: 'apps-ecommerce-product-add' },
+          { title: 'Category', to: 'apps-ecommerce-product-category-list' },
+        ],
+  },
+  
+  {
+    title: 'Branch Management',
+    icon: { icon: 'bx-box' },
+    children: [
+      { title: 'Branch List', to: 'apps-branch-list' },
+      { title: 'Subscription Status by Branch', to: 'pages-cards-card-basic' },
     ],
   },
 

@@ -47,6 +47,7 @@ export interface Data {
 
 export interface membersData {
   id: number
+  no: number
   recognition_account: string
   member_id: number
   name: string
@@ -70,4 +71,21 @@ export interface membersData {
   zip_code: string
   address: string
   status: number
+}
+
+export interface branchData {
+  created_at: string
+  id: number
+  branch_id: string
+  branch_name: string
+  numberOfMembers: string
+  branchManager: string
+  cellPhone: string
+  phoneNumber: string
+  faxNumber: string
+  accountNumber: string
+  bankName: string
+  accountHolder: string
+  recommender: string
+  memo: string
 }

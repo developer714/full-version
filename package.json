@@ -79,6 +79,7 @@
     "@tiptap/extension-subscript": "2.4.0",
     "@tiptap/extension-superscript": "2.4.0",
     "@tiptap/extension-underline": "2.4.0",
+    "@types/lodash": "^4.17.13",
     "@types/mapbox-gl": "3.1.0",
     "@types/node": "20.14.9",
     "@types/webfontloader": "1.6.38",
