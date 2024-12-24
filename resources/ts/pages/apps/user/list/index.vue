@@ -71,7 +71,7 @@ const defaultItem = ref<membersData>({
   name: "",
   email: "",
   rank: "",
-  avatar: "",
+  image: "",
   concierge: "",
   recommender_name: "",
   phone: "",
@@ -406,11 +406,11 @@ onMounted(() => {
           <div class="d-flex align-center">
             <VAvatar
               size="32"
-              :color="item.avatar ? '' : 'primary'"
-              :class="item.avatar ? '' : 'v-avatar-light-bg primary--text'"
-              :variant="!item.avatar ? 'tonal' : undefined"
+              :color="item.image ? '' : 'primary'"
+              :class="item.image ? '' : 'v-avatar-light-bg primary--text'"
+              :variant="!item.image ? 'tonal' : undefined"
             >
-              <VImg v-if="item.avatar" :src="item.avatar" />
+              <VImg v-if="item.image" :src="item.image" />
               <span v-else>{{ avatarText(item.fullName) }}</span>
             </VAvatar>
 

@@ -56,7 +56,7 @@ export interface membersData {
   account_number: string
   account_holder: string
   rank: string
-  avatar: string
+  image: string
   concierge: string
   recommender_name: string
   phone: string

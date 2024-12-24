@@ -4,40 +4,75 @@ export default [
     icon: { icon: 'bx-user' },
     children: [
       { title: 'Customer List', to: 'apps-user-list' },
-      { title: 'Sponsorship Diagram', to: 'pages-cards-card-statistics' },
-      { title: 'Recommendation Diagram', to: 'pages-cards-card-basic' },
+      { title: 'Sponsorship Diagram', to: 'apps-user-diagram-sponsorship' },
+      { title: 'Recommendation Diagram', to: 'apps-user-diagram-recommediation' },
     ],
   },
-  
+ 
   {
-    title: 'Ecommerce',
-    icon: { icon: 'bx-cart-alt' },
+    title: 'Order Management',
+    icon: { icon: 'bx-cart' },
         children: [
-          { title: 'Order', to: 'apps-ecommerce-product-list' },
-          { title: 'Add', to: 'apps-ecommerce-product-add' },
-          { title: 'Category', to: 'apps-ecommerce-product-category-list' },
+          { title: 'Product List', to: 'apps-ecommerce-product-list' },
+          { title: 'Add Product', to: 'apps-ecommerce-product-add' },
+          { title: 'Order List', to: 'apps-ecommerce-product-category-list' },
         ],
   },
-  
+
+
   {
-    title: 'Ecommerce',
+    title: 'Category Management',
     icon: { icon: 'bx-cart-alt' },
         children: [
-          { title: 'Order', to: 'apps-ecommerce-product-list' },
-          { title: 'Add', to: 'apps-ecommerce-product-add' },
-          { title: 'Category', to: 'apps-ecommerce-product-category-list' },
+          { title: 'Categeries', to: 'apps-ecommerce-product-list' },
+          { title: 'Sub Categories', to: 'apps-ecommerce-product-add' },
+          { title: 'Sub Sub Categories', to: 'apps-ecommerce-product-category-list' },
         ],
   },
   
   {
     title: 'Branch Management',
-    icon: { icon: 'bx-box' },
+    icon: { icon: 'bx-network-chart' },
     children: [
       { title: 'Branch List', to: 'apps-branch-list' },
       { title: 'Subscription Status by Branch', to: 'pages-cards-card-basic' },
     ],
   },
 
+  {
+    title: 'Member Settlement',
+    icon: { icon: 'bx-home-heart' },
+    children: [
+      { title: 'Allowance Detail(By Date)', to: 'apps-member-date' },
+      { title: 'Allowance Detail(By Member)', to: 'apps-member-member' },
+      { title: 'List Of Allowances Paid', to: 'apps-member-list-paid' },
+      { title: 'Excute Member Settlement', to: 'apps-member-execute' },
+      { title: 'Cancellation Of Settlement', to: 'apps-member-cancellation' },
+    ],
+  },
+
+  {
+    title: 'Branch Settlement',
+    icon: { icon: 'bx-building' },
+    children: [
+      { title: 'Allowance Detail(By Date)', to: 'apps-branch-settlement-date' },
+      { title: 'Allowance Detail(By Member)', to: 'apps-branch-settlement-member' },
+      { title: 'List Of Allowances Paid', to: 'apps-branch-settlement-list-paid' },
+      { title: 'Branch Settlement Execution', to: 'apps-branch-settlement-branch-excution' },
+    ],
+  },
+
+  {
+    title: 'Other Management',
+    icon: { icon: 'bx-cog' },
+    children: [
+      { title: 'Notification', to: 'apps-others-notification' },
+      { title: 'Bank Management', to: 'apps-others-bank' },
+      { title: 'Connection Information', to: 'apps-others-connection' },
+      { title: 'Report', to: 'apps-others-report' },
+      { title: 'Default Setting', to: 'apps-others-settings' },
+    ],
+  },
   // {
   //   title: 'Pages',
   //   icon: { icon: 'bx-file' },
